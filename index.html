@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0a0a" />
+<link rel="manifest" href="./manifest.json" />
+<title>HANDS & HEAD · NEXUS</title>
+<style>
+  :root{
+    --bg:#0a0a0a;--surface:#121212;--surface-2:#181818;--surface-3:#1f1f1f;
+    --line:#262626;--line-2:#333;
+    --amber:#f0a500;--amber-bright:#ffc043;--amber-dim:#7a5c1e;
+    --ink:#ededed;--muted:#8a8a8a;--faint:#555;
+    --verify:#2faa6a;--verify-bg:#13301f;--warn:#caa33a;--warn-bg:#2c2613;--risk:#ff4d4d;
+    --mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+    --bar-h:64px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:14px;line-height:1.45;
+    -webkit-font-smoothing:antialiased;overflow:hidden;height:100dvh;display:flex;flex-direction:column}
+  ::selection{background:var(--amber);color:#000}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--amber-bright);outline-offset:2px}
+  svg{display:block}
+  .body{flex:1 1 auto;overflow-y:auto;padding-bottom:calc(var(--bar-h) + 26px)}
+
+  /* ===== TOP BAR ===== */
+  .topbar{flex:0 0 auto;background:var(--bg);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;padding:12px 14px;gap:10px;
+    padding-top:max(12px,env(safe-area-inset-top))}
+  .store{display:flex;align-items:center;gap:10px;min-width:0}
+  .badge{width:32px;height:32px;background:var(--amber);color:#000;font-weight:700;font-size:10px;
+    display:flex;align-items:center;justify-content:center;letter-spacing:1px;flex:0 0 auto}
+  .nm{font-weight:700;letter-spacing:2px;font-size:14px;text-transform:uppercase;white-space:nowrap}
+  .nm small{color:var(--amber);font-weight:400}
+  .ttl{display:flex;align-items:center;gap:6px;font-weight:700;font-size:18px;letter-spacing:.5px}
+  .ttl .car{color:var(--amber)}
+  .ic-btn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:var(--ink)}
+  .ic-btn svg{width:20px;height:20px;stroke:var(--ink);stroke-width:2;fill:none}
+  .right{display:flex;align-items:center;gap:4px}
+  .mode-tag{font-size:9px;letter-spacing:1px;border:1px solid var(--amber-dim);color:var(--amber);padding:3px 7px;text-transform:uppercase}
+
+  /* ===== STOREFRONT ===== */
+  .ticker{background:var(--surface);border-bottom:1px solid var(--line);overflow:hidden;white-space:nowrap;font-size:11px;
+    letter-spacing:2px;color:var(--amber);padding:7px 0}
+  .ticker span{display:inline-block;padding-left:100%;animation:tick 18s linear infinite}
+  @keyframes tick{to{transform:translateX(-100%)}}
+  @media (prefers-reduced-motion:reduce){.ticker span{animation:none;padding-left:14px}}
+  .hero{padding:22px 16px 16px;border-bottom:1px solid var(--line)}
+  .hero .live{font-size:10px;letter-spacing:2px;color:var(--verify);display:flex;align-items:center;gap:7px;margin-bottom:12px}
+  .hero .live .d{width:7px;height:7px;background:var(--verify);border-radius:50%;box-shadow:0 0 7px var(--verify);animation:bl 1.6s steps(1) infinite}
+  @keyframes bl{50%{opacity:.3}}
+  .hero h1{margin:0;font-size:34px;letter-spacing:1px;line-height:1}
+  .hero p{color:var(--muted);font-size:13px;margin:12px 0 0;max-width:42ch}
+  .cats{display:flex;gap:8px;overflow-x:auto;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .cat{flex:0 0 auto;background:var(--surface-2);border:1px solid var(--line-2);color:var(--muted);font-size:11px;
+    letter-spacing:1px;padding:7px 13px;text-transform:uppercase}
+  .cat.on{background:var(--surface-3);color:var(--amber);border-color:var(--amber-dim)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+  .pcard{background:var(--bg);padding:14px;display:flex;flex-direction:column;gap:10px;border:none;text-align:left;color:var(--ink)}
+  .pcard:active{background:var(--surface)}
+  .pimg{aspect-ratio:1;border:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;letter-spacing:1px;color:#000;background:linear-gradient(135deg,var(--amber),var(--amber-dim))}
+  .pcard .pt{font-size:13px;font-weight:700;line-height:1.25}
+  .pcard .pc{font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+  .pcard .pp{font-size:14px;color:var(--amber);font-weight:700}
+
+  /* product sheet */
+  .sheet-scrim{position:fixed;inset:0;background:rgba(0,0,0,.7);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+  .sheet-scrim.on{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--amber-dim);
+    transform:translateY(102%);transition:transform .25s ease;z-index:61;max-height:88dvh;overflow-y:auto;
+    padding:18px 16px calc(20px + env(safe-area-inset-bottom))}
+  .sheet.on{transform:translateY(0)}
+  .sheet .pimg{aspect-ratio:16/10;font-size:18px;margin-bottom:14px}
+  .sheet h2{margin:0;font-size:20px}
+  .sheet .pc{font-size:10px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:6px 0}
+  .sheet .pp{font-size:24px;color:var(--amber);font-weight:700;margin:8px 0 14px}
+  .sheet p{color:var(--muted);font-size:13px}
+  .order-btns{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+  .wa{background:var(--verify);color:#001b0d;border:none;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+    font-size:14px;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px}
+  .buy{background:var(--amber);color:#000;border:none;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-size:14px;padding:14px}
+  .closex{background:none;border:1px solid var(--line-2);color:var(--muted);font-size:11px;letter-spacing:1px;
+    text-transform:uppercase;padding:11px;margin-top:4px}
+
+  /* ===== OPERATOR / ADMIN ===== */
+  .filters-top{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .pillbtn{background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);font-size:12px;padding:8px 12px;display:flex;align-items:center;gap:6px}
+  .pillbtn .c{color:var(--amber)}
+  .pillbtn.live::before{content:"";width:7px;height:7px;background:var(--verify);border-radius:50%;box-shadow:0 0 7px var(--verify);animation:bl 1.6s steps(1) infinite}
+  .metrics{display:flex;gap:22px;overflow-x:auto;padding:4px 0 16px;border-bottom:1px solid var(--line);margin-bottom:18px}
+  .metric{flex:0 0 auto}
+  .metric .lab{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .metric .val{font-size:26px;font-weight:700;margin-top:3px}
+  .metric .chg{font-size:11px;color:var(--verify);margin-top:1px}
+  .card{border:1px solid var(--line-2);background:var(--surface);margin-bottom:18px}
+  .card-h{padding:14px 14px 4px}.card-h h3{margin:0;font-size:16px}.card-h p{margin:6px 0 0;color:var(--muted);font-size:12px}
+  .row{display:flex;align-items:flex-start;gap:12px;padding:14px;border-top:1px solid var(--line)}
+  .row:active{background:var(--surface)}
+  .thumb{width:46px;height:46px;flex:0 0 auto;background:var(--surface-3);border:1px solid var(--line-2);
+    display:flex;align-items:center;justify-content:center;color:var(--amber);font-size:11px;font-weight:700;letter-spacing:1px}
+  .row .meta{flex:1;min-width:0}.row .t{font-size:14px;font-weight:700;line-height:1.3}.row .s{font-size:12px;color:var(--muted);margin-top:4px}
+  .pill{flex:0 0 auto;font-size:11px;padding:3px 10px;letter-spacing:.5px;white-space:nowrap;margin-top:2px}
+  .pill.ok{background:var(--verify-bg);color:var(--verify)}.pill.warn{background:var(--warn-bg);color:var(--warn)}
+  .pill.draft{background:var(--surface-3);color:var(--muted)}.pill.amber{background:#2c2410;color:var(--amber)}
+  .searchrow{display:flex;gap:8px;margin-bottom:14px}
+  .search{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line-2);padding:9px 12px}
+  .search svg{width:16px;height:16px;stroke:var(--muted);stroke-width:2;fill:none}
+  .search input{flex:1;background:none;border:none;color:var(--ink);font-family:var(--mono);font-size:13px;outline:none}
+  .tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:8px;padding-bottom:4px}
+  .tab{flex:0 0 auto;background:none;border:none;color:var(--muted);font-size:13px;padding:7px 14px}
+  .tab.on{background:var(--surface-3);color:var(--amber)}
+  .back{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;letter-spacing:1px;text-transform:uppercase;background:none;border:none;margin-bottom:14px;padding:0}
+  .back svg{width:15px;height:15px;stroke:var(--muted);stroke-width:2;fill:none}
+  .detail-h{display:flex;align-items:center;gap:14px;margin-bottom:6px}.detail-h .thumb{width:56px;height:56px}
+  .detail-h h2{margin:0;font-size:18px}.detail-h .sub{color:var(--muted);font-size:12px;margin-top:4px}
+  .field{margin:12px 0}.field label{display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .field input,.field textarea{width:100%;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);font-family:var(--mono);font-size:13px;padding:10px 12px;resize:vertical}
+  .go{background:var(--amber);color:#000;border:none;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-size:13px;padding:12px 20px;width:100%;margin-top:6px}
+  .go:disabled{background:var(--amber-dim);cursor:wait}
+  .stamp{border:1px solid var(--amber);background:linear-gradient(180deg,var(--surface-2),var(--surface));padding:14px;position:relative;margin-top:18px}
+  .stamp::before{content:"検証済 · VERIFIED";position:absolute;top:-1px;right:-1px;background:var(--amber);color:#000;font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 7px}
+  .stamp-title{font-size:14px;letter-spacing:.5px;text-transform:uppercase;margin:0 0 2px}
+  .stamp-jp{color:var(--muted);font-size:11px;margin-bottom:12px}
+  .score-wrap{display:flex;align-items:center;gap:14px;margin:4px 0 14px}
+  .score-num{font-size:32px;font-weight:700;color:var(--amber);line-height:1}.score-num small{font-size:12px;color:var(--faint)}
+  .score-bar{flex:1;height:12px;background:#000;border:1px solid var(--line-2);display:flex;gap:2px;padding:2px}
+  .seg{flex:1;background:var(--line-2)}.seg.on{background:var(--amber)}
+  .blk{margin:12px 0}.blk h4{margin:0 0 7px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--amber-bright)}
+  .blk.risk h4{color:var(--risk)}.blk.verify h4{color:var(--verify)}
+  ul.lst{list-style:none;margin:0;padding:0}ul.lst li{padding:5px 0 5px 16px;position:relative;border-bottom:1px solid var(--line);font-size:12px}
+  ul.lst li:last-child{border-bottom:none}ul.lst li::before{content:"▸";position:absolute;left:0;color:var(--amber)}
+  .blk.risk ul.lst li::before{content:"!";color:var(--risk);font-weight:700}.blk.verify ul.lst li::before{content:"✓";color:var(--verify)}
+  .note-jp{border-left:3px solid var(--amber);padding:8px 12px;background:var(--surface-2);font-size:12px;margin-top:4px}
+  table.tp{width:100%;border-collapse:collapse;font-size:11px;border:1px solid var(--line-2)}
+  table.tp th,table.tp td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);vertical-align:top}
+  table.tp th{background:var(--surface-2);color:var(--amber-bright);font-size:9px;letter-spacing:1px;text-transform:uppercase}
+  .tags{display:flex;flex-direction:column;gap:5px;border:1px dashed var(--amber-dim);padding:10px}.tags .t{font-size:11px}.tags .t b{color:var(--amber)}
+  .loading{color:var(--amber);font-size:12px;letter-spacing:2px;margin-top:18px;display:flex;align-items:center;gap:8px}
+  .loading::after{content:"";width:9px;height:13px;background:var(--amber);animation:cur 1s steps(1) infinite}
+  @keyframes cur{50%{opacity:0}}
+  .err{border:1px solid var(--risk);background:rgba(255,77,77,.06);color:#ffb3b3;padding:12px;font-size:12px;margin-top:16px}.err b{color:var(--risk)}
+  .empty{border:1px dashed var(--line-2);padding:40px 20px;text-align:center;color:var(--muted);font-size:13px;margin-top:10px}
+  .empty b{color:var(--amber);display:block;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+  details summary{cursor:pointer;color:var(--faint);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-top:8px}
+  details pre{background:#000;border:1px solid var(--line-2);color:var(--muted);padding:10px;overflow:auto;font-size:10px;max-height:200px;white-space:pre-wrap;word-break:break-word}
+
+  /* ===== BOTTOM TAB BAR ===== */
+  .tabbar{position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;justify-content:center;pointer-events:none;z-index:30}
+  .pill-bar{pointer-events:auto;display:flex;align-items:center;gap:4px;background:var(--surface-2);border:1px solid var(--line-2);
+    border-radius:40px;padding:7px 10px;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  .tb{width:46px;height:46px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center}
+  .tb svg{width:22px;height:22px;stroke:var(--muted);stroke-width:2;fill:none}
+  .tb.on{background:var(--surface-3)}.tb.on svg{stroke:var(--amber)}
+  .tb-lock svg{stroke:var(--amber-dim)}
+
+  /* ===== DRAWER ===== */
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;bottom:0;left:0;width:84%;max-width:340px;background:var(--bg);border-right:1px solid var(--line-2);
+    transform:translateX(-102%);transition:transform .22s ease;z-index:50;display:flex;flex-direction:column}
+  .drawer.on{transform:translateX(0)}
+  .dr-head{padding:16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding-top:max(16px,env(safe-area-inset-top))}
+  .dr-items{flex:1;overflow-y:auto;padding:8px 10px}
+  .nav{display:flex;align-items:center;gap:14px;padding:13px 12px;color:var(--ink);font-size:15px;background:none;border:none;width:100%;text-align:left;border-radius:10px}
+  .nav .ico{width:22px;height:22px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
+  .nav .ico svg{width:20px;height:20px;stroke:var(--ink);stroke-width:1.8;fill:none}
+  .nav .lbl{flex:1}.nav.sel{background:var(--surface-3)}.nav.sel .ico svg,.nav.sel .lbl{stroke:var(--amber);color:var(--amber)}
+  .dr-foot{padding:12px;border-top:1px solid var(--line);padding-bottom:max(12px,env(safe-area-inset-bottom))}
+  .exit-store{width:100%;background:var(--amber);color:#000;border:none;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-size:12px;padding:12px;display:flex;align-items:center;justify-content:center;gap:8px}
+
+  /* ===== GATE MODAL ===== */
+  .gate-scrim{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:70;padding:20px}
+  .gate-scrim.on{display:flex}
+  .gate{background:var(--surface);border:1px solid var(--amber-dim);padding:24px;width:100%;max-width:320px}
+  .gate h3{margin:0 0 4px;font-size:16px;letter-spacing:1px;text-transform:uppercase}
+  .gate p{color:var(--muted);font-size:12px;margin:0 0 16px}
+  .gate input{width:100%;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);font-family:var(--mono);
+    font-size:18px;letter-spacing:4px;text-align:center;padding:12px;margin-bottom:12px}
+  .gate .grow{display:flex;gap:8px}
+  .gate .grow button{flex:1;padding:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-size:12px;border:none}
+  .gate .ok{background:var(--amber);color:#000}.gate .ng{background:var(--surface-3);color:var(--muted)}
+  .gate .errln{color:var(--risk);font-size:11px;text-align:center;min-height:14px;margin-bottom:6px}
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar"></div>
+<div class="body" id="body"></div>
+<div class="tabbar"><div class="pill-bar" id="tabbar"></div></div>
+
+<!-- storefront product sheet -->
+<div class="sheet-scrim" id="sheetScrim" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet"></div>
+
+<!-- operator drawer -->
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer"></aside>
+
+<!-- operator gate -->
+<div class="gate-scrim" id="gateScrim">
+  <div class="gate">
+    <h3>Operator Access</h3>
+    <p>Restricted. The real gate is server-side — this unlocks the console UI.</p>
+    <div class="errln" id="gateErr"></div>
+    <input id="gatePin" type="password" inputmode="numeric" placeholder="••••" maxlength="8" />
+    <div class="grow"><button class="ng" onclick="closeGate()">Cancel</button><button class="ok" onclick="tryGate()">Unlock</button></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG  —  fill these to go live, otherwise runs in DEMO mode
+   ============================================================ */
+const SPINE_URL   = "";                  // ← paste your Apps Script Web App /exec URL
+const SHOP_DOMAIN = "handfilm.myshopify.com"; // for cart permalinks
+const WHATSAPP    = "8801XXXXXXXXX";     // ← your WhatsApp number, digits only
+const OPERATOR_PIN= "2580";              // UI-only convenience; real auth is in the spine
+const ANTHROPIC   = "https://api.anthropic.com/v1/messages"; // preview-only AI path
+const MODEL       = "claude-sonnet-4-6";
+
+/* ============================================================
+   BACKEND GATEWAY  —  one interface, both faces
+   When SPINE_URL is set, everything routes through your Apps Script
+   doPost router. When empty, demoSpine() serves local data so the
+   app is fully explorable here.
+   ============================================================ */
+async function callSpine(action, payload={}){
+  if(SPINE_URL){
+    const r = await fetch(SPINE_URL,{method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"}, // avoids Apps Script CORS preflight
+      body:JSON.stringify({action,payload})});
+    if(!r.ok) throw new Error("SPINE "+r.status);
+    return await r.json();
+  }
+  return demoSpine(action,payload);
+}
+
+/* ---- DEMO backend (preview only) ---- */
+let demoOrders = [
+  {id:"HH-1042",t:"RAWx Tiger Tee ×1",s:"WhatsApp · Dhaka",st:["NEW","amber"]},
+  {id:"HH-1041",t:"BD Football '26 ×2",s:"Cart · Chattogram",st:["PACKED","warn"]},
+  {id:"HH-1039",t:"Drop-Shoulder Mono ×1",s:"WhatsApp · Sylhet",st:["SHIPPED","ok"]}
+];
+const demoCatalog = [
+  {id:"t1",t:"RAWx Tiger Tee",cat:"RAWx",price:650,ini:"RWX"},
+  {id:"t2",t:"Bangladesh Football '26",cat:"FOOTBALL",price:650,ini:"BD26"},
+  {id:"t3",t:"Drop-Shoulder Mono",cat:"ALL BRANDS",price:750,ini:"DSM"},
+  {id:"t4",t:"Women's Oversized",cat:"WOMEN",price:650,ini:"WMN"},
+  {id:"t5",t:"Street Footwear Drop",cat:"FOOTWEAR",price:1200,ini:"FTW"},
+  {id:"t6",t:"H&H Classic Logo",cat:"ALL BRANDS",price:650,ini:"H&H"}
+];
+const demoMakers = [
+  {id:"karim",n:"Karim Leather Works",loc:"Savar · 8,000/mo",ini:"KLW",st:["VERIFIED","ok"],years:"12",cap:"8,000",cert:"LWG Bronze, ISO 9001, BSCI",def:"2.3",spec:"Full-grain cowhide bags & boots",hist:"6 yrs EU private label; no JP buyers yet"},
+  {id:"bengal",n:"Bengal Footwear Ltd",loc:"Gazipur · 22,000/mo",ini:"BFL",st:["VERIFIED","ok"],years:"15",cap:"22,000",cert:"LWG Silver, ISO 9001, SLCP",def:"2.0",spec:"Leather footwear, Goodyear welt",hist:"OEM for EU & JP brands"},
+  {id:"dhaka",n:"Dhaka Hide & Co",loc:"Hazaribagh · 5,500/mo",ini:"DH",st:["PENDING","warn"],years:"7",cap:"5,500",cert:"BSCI in progress",def:"4.1",spec:"Vegetable-tanned small goods",hist:"Domestic only"}
+];
+function demoSpine(action,p){
+  if(action==="getFeed")    return Promise.resolve({items:demoCatalog});
+  if(action==="getMakers")  return Promise.resolve({items:demoMakers});
+  if(action==="listOrders") return Promise.resolve({items:demoOrders});
+  if(action==="placeOrder"){ demoOrders.unshift({id:"HH-"+(1043+demoOrders.length),t:p.title,s:"new · "+(p.channel||"app"),st:["NEW","amber"]}); return Promise.resolve({ok:true}); }
+  if(action==="genDossier") return claudeDirect(dossierSys, p.text);   // preview AI
+  if(action==="genTechpack")return claudeDirect(techpackSys, p.text);  // preview AI
+  return Promise.resolve({error:"unknown action "+action});
+}
+/* preview-only direct AI (in prod these run inside the spine with a server-side key) */
+async function claudeDirect(system,content){
+  const r=await fetch(ANTHROPIC,{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({model:MODEL,max_tokens:1000,system,messages:[{role:"user",content}]})});
+  if(!r.ok) throw new Error("AI "+r.status);
+  const d=await r.json();
+  const txt=(d.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("").trim();
+  const clean=txt.replace(/^```(?:json)?/i,"").replace(/```$/,"").trim();
+  try{ return JSON.parse(clean); }catch(_){ return {__raw:txt}; }
+}
+const dossierSys=`You are the verification engine for a Bangladesh→Japan leather trust corridor. Convert this maker's data into a concise dossier letting a high-end Japanese buyer decide remotely. Be HONEST about gaps. Respond ONLY minified JSON: {"maker":string,"trust_score":int 0-100,"verdict_en":string,"verdict_jp":string,"verified":string[3-5],"gaps":string[2-4],"capacity_read":string,"risk_flags":string[0-3],"recommended_first_order":string,"buyer_note_jp":string}`;
+const techpackSys=`You are the spec-to-techpack translator for a Bangladesh→Japan leather corridor. Convert a loose (often Japanese) spec into a factory-ready tech pack with Japan-compliant labelling. Respond ONLY minified JSON: {"product_en":string,"product_jp":string,"summary":string,"bom":[{"component":string,"material":string,"spec":string}],"measurements":[{"point":string,"value":string,"tolerance":string}],"construction_notes":string[2-4],"jp_tags":{"material_jp":string,"origin_jp":string,"care_jp":string},"feasibility":string,"cost_flag":string,"open_questions":string[2-4]}`;
+
+/* ============================================================
+   APP STATE
+   ============================================================ */
+let mode="store";              // "store" | "operator"
+let opScreen="dashboard";
+let storeCat="ALL";
+let catalog=[], makers=[], orders=[];
+let dossierCache={};
+
+const I={
+  home:'<svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+  search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>',
+  cart:'<svg viewBox="0 0 24 24"><path d="M3 4h2l2 13h11l2-9H7"/><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/></svg>',
+  user:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
+  lock:'<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>',
+  inbox:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 13h5l2 3h4l2-3h5"/></svg>',
+  tag:'<svg viewBox="0 0 24 24"><path d="M3 12V4h8l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg>',
+  doc:'<svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/></svg>',
+  grid:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',
+  menu:'<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+  bag:'<svg viewBox="0 0 24 24"><path d="M6 7h12l1 13H5z"/><path d="M9 7V5a3 3 0 016 0v2"/></svg>',
+  arrowL:'<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',
+  wa:'<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 00-7.7 13.6L3 21l4.5-1.2A9 9 0 1012 3z"/><path d="M8.5 8.5c0 4 3 7 7 7"/></svg>'
+};
+
+/* ============================================================
+   ROUTER
+   ============================================================ */
+async function boot(){
+  try{ const f=await callSpine("getFeed"); catalog=f.items||[]; }catch(e){ catalog=[]; }
+  render();
+}
+function render(){ mode==="store"?renderStore():renderOperator(); }
+
+/* ============================================================
+   STOREFRONT
+   ============================================================ */
+function renderStore(){
+  document.getElementById("topbar").innerHTML=
+    `<div class="store"><div class="badge">H&H</div><div class="nm">HANDS&HEAD</div></div>
+     <div class="right"><span class="mode-tag">Bangladesh → World</span></div>`;
+  const cats=["ALL",...Array.from(new Set(catalog.map(p=>p.cat)))];
+  const items=catalog.filter(p=>storeCat==="ALL"||p.cat===storeCat);
+  document.getElementById("body").innerHTML=`
+    <div class="ticker"><span>HANDS & HEAD ✦ PRINT ON DEMAND ✦ ALL BRANDS ✦ WOMEN ✦ FOOTBALL ✦ RAWx ✦ FOOTWEAR ✦ BANGLADESH → WORLD ✦ &nbsp;</span></div>
+    <div class="hero">
+      <div class="live"><span class="d"></span>API LIVE ⚡ ${SPINE_URL?"":"· DEMO FEED"}</div>
+      <h1>HANDS &amp; HEAD</h1>
+      <p>From the streets to your wardrobe. Tap a piece, order on WhatsApp or checkout direct.</p>
+    </div>
+    <div class="cats">${cats.map(c=>`<button class="cat ${c===storeCat?"on":""}" data-cat="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+    <div class="grid">${items.map(p=>`
+      <button class="pcard" data-prod="${esc(p.id)}">
+        <div class="pimg">${esc(p.ini||"H&H")}</div>
+        <div class="pc">${esc(p.cat)}</div>
+        <div class="pt">${esc(p.t)}</div>
+        <div class="pp">৳${esc(p.price)}</div>
+      </button>`).join("")||`<div class="empty" style="grid-column:1/3"><b>Catalog empty</b>Set SPINE_URL to load your Drive feed.</div>`}</div>`;
+  renderTabbar();
+  document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{storeCat=b.dataset.cat;renderStore();});
+  document.querySelectorAll("[data-prod]").forEach(b=>b.onclick=()=>openSheet(b.dataset.prod));
+}
+function openSheet(id){
+  const p=catalog.find(x=>x.id===id); if(!p) return;
+  document.getElementById("sheet").innerHTML=`
+    <div class="pimg">${esc(p.ini||"H&H")}</div>
+    <div class="pc">${esc(p.cat)} · PRINT ON DEMAND</div>
+    <h2>${esc(p.t)}</h2>
+    <div class="pp">৳${esc(p.price)}</div>
+    <p>Made-to-order in Bangladesh. Screenshot this and send to WhatsApp, or checkout direct.</p>
+    <div class="order-btns">
+      <button class="wa" id="waBtn">${I.wa} Order on WhatsApp</button>
+      <button class="buy" id="buyBtn">Checkout direct · ৳${esc(p.price)}</button>
+      <button class="closex" onclick="closeSheet()">Close</button>
+    </div>`;
+  document.getElementById("sheetScrim").classList.add("on");
+  document.getElementById("sheet").classList.add("on");
+  document.getElementById("waBtn").onclick=()=>order(p,"whatsapp");
+  document.getElementById("buyBtn").onclick=()=>order(p,"cart");
+}
+function closeSheet(){ document.getElementById("sheetScrim").classList.remove("on"); document.getElementById("sheet").classList.remove("on"); }
+async function order(p,channel){
+  // record the order through the spine (so the operator console sees it — single source of truth)
+  try{ await callSpine("placeOrder",{title:p.t+" ×1",sku:p.id,price:p.price,channel}); }catch(e){}
+  if(channel==="whatsapp"){
+    const msg=encodeURIComponent(`HANDS & HEAD order:\n${p.t}\n৳${p.price}\nSKU ${p.id}`);
+    window.open(`https://wa.me/${WHATSAPP}?text=${msg}`,"_blank");
+  }else{
+    // Shopify cart permalink — wire variant IDs in your feed for real checkout
+    window.open(`https://${SHOP_DOMAIN}/cart/add?id=${encodeURIComponent(p.id)}`,"_blank");
+  }
+  closeSheet();
+}
+
+/* ============================================================
+   OPERATOR / ADMIN  (the Shopify chassis)
+   ============================================================ */
+const NAV=[
+  {id:"dashboard",icon:"home",label:"Dashboard"},
+  {id:"orders",icon:"inbox",label:"Orders"},
+  {id:"makers",icon:"tag",label:"Makers"},
+  {id:"techpacks",icon:"doc",label:"Tech-Packs"},
+  {id:"catalog",icon:"grid",label:"Catalog"}
+];
+function renderOperator(){
+  const n=NAV.find(x=>x.id===opScreen)||{label:""};
+  document.getElementById("topbar").innerHTML=
+    `<div class="ttl">${esc(n.label)}<span class="car">▾</span></div>
+     <div class="right"><span class="mode-tag">Operator</span></div>`;
+  renderOpBody(); renderTabbar(); document.getElementById("body").scrollTop=0;
+}
+async function renderOpBody(){
+  const b=document.getElementById("body");
+  if(opScreen==="dashboard") return renderDash(b);
+  if(opScreen==="orders")    return renderOrders(b);
+  if(opScreen==="makers")    return renderMakers(b);
+  if(opScreen==="catalog")   return renderCatalogAdmin(b);
+  if(opScreen==="techpacks") return renderTechpacks(b);
+  if(opScreen.startsWith("maker:")) return renderMakerDetail(b,opScreen.split(":")[1]);
+}
+async function renderDash(b){
+  let o=[]; try{ o=(await callSpine("listOrders")).items||[]; }catch(e){}
+  orders=o;
+  b.innerHTML=`
+    <div class="filters-top"><button class="pillbtn">Last 30 days <span class="c">▾</span></button><button class="pillbtn live">Live</button></div>
+    <div class="metrics">
+      <div class="metric"><div class="lab">Open orders</div><div class="val">${o.filter(x=>x.st[0]!=="SHIPPED").length}</div><div class="chg">↗ live</div></div>
+      <div class="metric"><div class="lab">Catalog</div><div class="val">${catalog.length}</div></div>
+      <div class="metric"><div class="lab">Makers verified</div><div class="val">${makers.filter(m=>m.st&&m.st[0]==="VERIFIED").length||"—"}</div></div>
+      <div class="metric"><div class="lab">Dossiers</div><div class="val">${Object.keys(dossierCache).length}</div></div>
+    </div>
+    <div class="card"><div class="card-h"><h3>Live orders</h3><p>Placed from the storefront — same data, one source</p></div>
+      ${o.map(d=>`<div class="row"><div class="thumb">${esc(d.id.split("-")[0])}</div>
+        <div class="meta"><div class="t">${esc(d.t)}</div><div class="s">${esc(d.id)} · ${esc(d.s)}</div></div>
+        <span class="pill ${d.st[1]}">${esc(d.st[0])}</span></div>`).join("")||`<div class="empty"><b>No orders</b>Place one from the storefront to see it here.</div>`}</div>`;
+}
+async function renderOrders(b){
+  let o=[]; try{ o=(await callSpine("listOrders")).items||[]; }catch(e){}
+  b.innerHTML=`
+    <div class="searchrow"><div class="search">${I.search}<input placeholder="Search orders"></div></div>
+    <div class="tabs">${["All","New","Packed","Shipped"].map((t,i)=>`<button class="tab ${i===0?"on":""}">${t}</button>`).join("")}</div>
+    ${o.map(d=>`<div class="row"><div class="thumb">${esc(d.id.split("-")[0])}</div>
+      <div class="meta"><div class="t">${esc(d.t)}</div><div class="s">${esc(d.id)} · ${esc(d.s)}</div></div>
+      <span class="pill ${d.st[1]}">${esc(d.st[0])}</span></div>`).join("")||`<div class="empty"><b>No orders yet</b></div>`}`;
+  bindTabs();
+}
+async function renderMakers(b){
+  try{ makers=(await callSpine("getMakers")).items||[]; }catch(e){ makers=[]; }
+  b.innerHTML=`
+    <div class="searchrow"><div class="search">${I.search}<input placeholder="Search makers"></div></div>
+    <div class="tabs">${["All","Verified","Pending","Draft"].map((t,i)=>`<button class="tab ${i===0?"on":""}">${t}</button>`).join("")}</div>
+    ${makers.map(m=>`<button class="row" style="width:100%;text-align:left;border-top:1px solid var(--line)" data-maker="${esc(m.id)}">
+      <div class="thumb">${esc(m.ini)}</div><div class="meta"><div class="t">${esc(m.n)}</div><div class="s">${esc(m.loc)}</div></div>
+      <span class="pill ${m.st[1]}">${esc(m.st[0])}</span></button>`).join("")}`;
+  bindTabs();
+  document.querySelectorAll("[data-maker]").forEach(x=>x.onclick=()=>{opScreen="maker:"+x.dataset.maker;renderOperator();});
+}
+function renderMakerDetail(b,id){
+  const m=makers.find(x=>x.id===id); if(!m){opScreen="makers";return renderOperator();}
+  b.innerHTML=`
+    <button class="back" onclick="opScreen='makers';renderOperator()">${I.arrowL} Makers</button>
+    <div class="detail-h"><div class="thumb">${esc(m.ini)}</div><div><h2>${esc(m.n)}</h2><div class="sub">${esc(m.loc)} · ${esc(m.years)} yrs</div></div></div>
+    <div style="margin:8px 0"><span class="pill ${m.st[1]}">${esc(m.st[0])}</span></div>
+    <div class="field"><label>Certifications</label><input id="dc_cert" value="${esc(m.cert)}"></div>
+    <div class="field"><label>Defect % / Specialty</label><input id="dc_spec" value="${esc(m.def)}% · ${esc(m.spec)}"></div>
+    <div class="field"><label>Client history</label><input id="dc_hist" value="${esc(m.hist)}"></div>
+    <button class="go" id="dc_go">Generate Trust Dossier · JP</button><div id="dc_out"></div>`;
+  document.getElementById("dc_go").onclick=()=>runDossier(m);
+  if(dossierCache[id]) document.getElementById("dc_out").innerHTML=viewDossier(dossierCache[id]);
+}
+async function runDossier(m){
+  const out=document.getElementById("dc_out");
+  const text=`Maker: ${m.n}\nLocation: ${m.loc}\nYears: ${m.years}\nCapacity: ${m.cap}/mo\nCerts: ${val("dc_cert")}\nDefect/Specialty: ${val("dc_spec")}\nHistory: ${val("dc_hist")}`;
+  out.innerHTML=`<div class="loading">GENERATING DOSSIER</div>`; document.getElementById("dc_go").disabled=true;
+  try{ const d=await callSpine("genDossier",{text}); dossierCache[m.id]=d; out.innerHTML=viewDossier(d); }
+  catch(e){ out.innerHTML=`<div class="err"><b>FAULT.</b> ${esc(e.message)}</div>`; }
+  finally{ document.getElementById("dc_go").disabled=false; }
+}
+function renderTechpacks(b){
+  b.innerHTML=`
+    <div class="field"><label>Buyer spec · any language</label>
+      <textarea id="tp_spec" rows="5">本革トートバッグ。A4対応、内ポケット2、マグネット開閉。ヌメ革風ナチュラルカラー。卸価格¥6,000、初回200個。店頭即納希望。</textarea></div>
+    <button class="go" id="tp_go">Generate Tech-Pack</button><div id="tp_out"></div>`;
+  document.getElementById("tp_go").onclick=async()=>{
+    const out=document.getElementById("tp_out"); out.innerHTML=`<div class="loading">TRANSLATING SPEC</div>`;
+    document.getElementById("tp_go").disabled=true;
+    try{ const d=await callSpine("genTechpack",{text:val("tp_spec")}); out.innerHTML=viewTechpack(d); }
+    catch(e){ out.innerHTML=`<div class="err"><b>FAULT.</b> ${esc(e.message)}</div>`; }
+    finally{ document.getElementById("tp_go").disabled=false; }
+  };
+}
+function renderCatalogAdmin(b){
+  b.innerHTML=`
+    <div class="card"><div class="card-h"><h3>Drive feed</h3><p>The catalog both faces read — one source of truth</p></div>
+    ${catalog.map(p=>`<div class="row"><div class="thumb">${esc(p.ini||"H&H")}</div>
+      <div class="meta"><div class="t">${esc(p.t)}</div><div class="s">${esc(p.cat)} · ৳${esc(p.price)}</div></div>
+      <span class="pill ok">LIVE</span></div>`).join("")||`<div class="empty"><b>Empty</b>Connect SPINE_URL → getFeed.</div>`}</div>
+    <div class="empty"><b>Sync engine</b>In production, <code>getFeed</code> reads your Google Drive catalog via the spine. Edits here write back through <code>upsertProduct</code>.</div>`;
+}
+
+/* ---- shared renderers ---- */
+function viewDossier(d){
+  if(d.__raw) return `<div class="err"><b>PARSE FALLBACK</b></div><details><summary>raw</summary><pre>${esc(d.__raw)}</pre></details>`;
+  const sc=Math.max(0,Math.min(100,parseInt(d.trust_score)||0));
+  const segs=Array.from({length:20},(_,i)=>`<span class="seg ${i<Math.round(sc/5)?"on":""}"></span>`).join("");
+  return `<div class="stamp"><div class="stamp-title">${esc(d.maker)}</div><div class="stamp-jp">信頼性評価書 · BD→JP</div>
+    <div class="score-wrap"><div class="score-num">${sc}<small>/100</small></div><div class="score-bar">${segs}</div></div>
+    <div class="blk"><h4>Verdict</h4><div style="font-size:12px">${esc(d.verdict_en)}</div><div class="note-jp">${esc(d.verdict_jp)}</div></div>
+    ${lst("verify","Verified",d.verified)}${lst("","Gaps · before first order",d.gaps)}${(d.risk_flags&&d.risk_flags.length)?lst("risk","Risk flags",d.risk_flags):""}
+    <div class="blk"><h4>Capacity</h4><div style="font-size:12px">${esc(d.capacity_read)}</div></div>
+    <div class="blk"><h4>First order</h4><div style="font-size:12px">${esc(d.recommended_first_order)}</div></div>
+    <div class="blk"><h4>Buyer note</h4><div class="note-jp">${esc(d.buyer_note_jp)}</div></div>
+    <details><summary>raw JSON · spine contract</summary><pre>${esc(JSON.stringify(d,null,2))}</pre></details></div>`;
+}
+function viewTechpack(d){
+  if(d.__raw) return `<div class="err"><b>PARSE FALLBACK</b></div><details><summary>raw</summary><pre>${esc(d.__raw)}</pre></details>`;
+  const bom=(d.bom||[]).map(r=>`<tr><td>${esc(r.component)}</td><td>${esc(r.material)}</td><td>${esc(r.spec)}</td></tr>`).join("");
+  const meas=(d.measurements||[]).map(r=>`<tr><td>${esc(r.point)}</td><td>${esc(r.value)}</td><td>${esc(r.tolerance)}</td></tr>`).join("");
+  const tg=d.jp_tags||{};
+  return `<div class="stamp"><div class="stamp-title">${esc(d.product_en)}</div><div class="stamp-jp">${esc(d.product_jp)} · 仕様書</div>
+    <div class="blk"><h4>Summary</h4><div style="font-size:12px">${esc(d.summary)}</div></div>
+    <div class="blk"><h4>BOM</h4><table class="tp"><tr><th>Component</th><th>Material</th><th>Spec</th></tr>${bom}</table></div>
+    <div class="blk"><h4>Measurements</h4><table class="tp"><tr><th>Point</th><th>Value</th><th>Tol</th></tr>${meas}</table></div>
+    ${lst("","Construction",d.construction_notes)}
+    <div class="blk"><h4>JP labelling</h4><div class="tags"><div class="t"><b>素材:</b> ${esc(tg.material_jp)}</div><div class="t"><b>原産国:</b> ${esc(tg.origin_jp)}</div><div class="t"><b>取扱:</b> ${esc(tg.care_jp)}</div></div></div>
+    ${lst("risk","Confirm before sampling",d.open_questions)}
+    <details><summary>raw JSON · spine contract</summary><pre>${esc(JSON.stringify(d,null,2))}</pre></details></div>`;
+}
+function lst(cls,title,arr){ if(!arr||!arr.length)return""; return `<div class="blk ${cls}"><h4>${title}</h4><ul class="lst">${arr.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`; }
+function bindTabs(){ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));t.classList.add("on");}); }
+
+/* ============================================================
+   TAB BAR  (face-aware)
+   ============================================================ */
+function renderTabbar(){
+  const el=document.getElementById("tabbar");
+  if(mode==="store"){
+    el.innerHTML=`
+      <button class="tb on" aria-label="Shop">${I.bag}</button>
+      <button class="tb" aria-label="Search">${I.search}</button>
+      <button class="tb" aria-label="Cart">${I.cart}</button>
+      <button class="tb" aria-label="Account">${I.user}</button>
+      <button class="tb tb-lock" id="lockBtn" aria-label="Operator">${I.lock}</button>`;
+    el.querySelector("#lockBtn").onclick=openGate;
+  }else{
+    const tabs=[{id:"dashboard",icon:"home"},{id:"orders",icon:"inbox"},{id:"makers",icon:"tag"},{id:"catalog",icon:"grid"},{id:"__menu",icon:"menu"}];
+    el.innerHTML=tabs.map(t=>`<button class="tb ${t.id===opScreen?"on":""}" data-op="${t.id}">${I[t.icon]}</button>`).join("");
+    el.querySelectorAll("[data-op]").forEach(b=>b.onclick=()=>{ const id=b.dataset.op; if(id==="__menu"){openDrawer();return;} opScreen=id; renderOperator(); });
+  }
+}
+
+/* ============================================================
+   OPERATOR DRAWER
+   ============================================================ */
+function renderDrawer(){
+  const el=document.getElementById("drawer");
+  el.innerHTML=`
+    <div class="dr-head"><div class="badge">H&H</div><div class="nm">NEXUS <small style="color:var(--amber)">· OPS</small></div></div>
+    <div class="dr-items">${NAV.map(n=>`<button class="nav ${n.id===opScreen?"sel":""}" data-nav="${n.id}">
+      <span class="ico">${I[n.icon]}</span><span class="lbl">${n.label}</span></button>`).join("")}
+      <button class="nav" data-nav="techpacks"><span class="ico">${I.doc}</span><span class="lbl">Tech-Packs</span></button></div>
+    <div class="dr-foot"><button class="exit-store" onclick="exitOperator()">${I.bag} Back to Storefront</button></div>`;
+  el.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>{opScreen=b.dataset.nav;closeDrawer();renderOperator();});
+}
+function openDrawer(){ renderDrawer(); document.getElementById("drawer").classList.add("on"); document.getElementById("scrim").classList.add("on"); }
+function closeDrawer(){ document.getElementById("drawer").classList.remove("on"); document.getElementById("scrim").classList.remove("on"); }
+
+/* ============================================================
+   GATE
+   ============================================================ */
+function openGate(){ document.getElementById("gateScrim").classList.add("on"); document.getElementById("gateErr").textContent=""; document.getElementById("gatePin").value=""; setTimeout(()=>document.getElementById("gatePin").focus(),50); }
+function closeGate(){ document.getElementById("gateScrim").classList.remove("on"); }
+function tryGate(){
+  if(document.getElementById("gatePin").value===OPERATOR_PIN){ closeGate(); mode="operator"; opScreen="dashboard"; renderOperator(); }
+  else{ document.getElementById("gateErr").textContent="Wrong PIN."; document.getElementById("gatePin").value=""; }
+}
+document.getElementById("gatePin").addEventListener("keydown",e=>{ if(e.key==="Enter") tryGate(); });
+function exitOperator(){ closeDrawer(); mode="store"; renderStore(); }
+
+function val(id){ const e=document.getElementById(id); return e?e.value.trim():""; }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---- PWA ---- */
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("./sw.js").catch(()=>{}); }
+
+boot();
+</script>
+</body>
+</html>
