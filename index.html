@@ -1106,6 +1106,8 @@ async function renderExpertBody(b) {
   if (expScreen === "catalog")   return renderCatalog(b);
   if (expScreen === "makers")    return renderStub(b, "Makers Dossier", I.tag);
   if (expScreen === "techpacks") return renderStub(b, "Tech-Pack Translator", I.doc);
+  if (expScreen === "social") return renderSocial(b);
+  if (expScreen === "ledger") return renderLedger(b);
 }
 
 async function renderExpertDash(b) {
@@ -1380,6 +1382,7 @@ function renderTabbar() {
       <button class="tb cam-fab" onclick="startCamera()">${I.cam}</button>
       <button class="tb ${expScreen==='makers'?'on':''}"    onclick="expScreen='makers';render()">${I.tag}</button>
       <button class="tb ${expScreen==='techpacks'?'on':''}" onclick="expScreen='techpacks';render()">${I.doc}</button>
+      <button class="tb" onclick="openDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <button class="tb exit-btn" onclick="exitExpert()">${I.exit}</button>
     `;
   }
@@ -1542,5 +1545,6 @@ render();
    =========================================================== */
 // STRIKE 3 complete via CSS-only.
 </script>
+<script src="nexus-ext.js"></script>
 </body>
 </html>
