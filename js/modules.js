@@ -1,5 +1,5 @@
 /* ===========================================================
-   js/modules.js - NEXOS MODULAR FORM CHANNELS
+   js/modules.js - NEXOS MODULAR FORM CHANNELS (SELF-CONTAINED)
    =========================================================== */
 (function () {
   if (typeof window.render !== "function") return;
@@ -12,18 +12,31 @@
   }
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
 
+  // সেফটি রেন্ডারার লেয়ার (যদি app.js থেকে গ্লোবাল ফাংশন ডিলে করে লোড হয়)
+  function safeOrdersList(o) {
+    if (typeof window.ordersListHtml === "function") return window.ordersListHtml(o);
+    if (!o || !o.length) return `<div class="empty">No orders logged yet</div>`;
+    return o.map(d => `<div class="orow"><div class="othumb">NX</div><div class="om"><div class="ot">${d.t}</div><div class="os">${d.s}</div></div><div class="pill ok">${d.st ? d.st[0] : 'NEW'}</div></div>`).join("");
+  }
+
+  function safeStoreGrid(c) {
+    if (typeof window.storeGridHtml === "function") return window.storeGridHtml(c);
+    if (!c || !c.length) return '<div class="sync-placeholder"><div class="skeleton sync-item"></div></div>';
+    return c.map(p => `<button class="pcard" data-buy="${p.id}"><div class="pim">${p.img ? `<img src="${p.img}">` : p.ini}</div><div class="pt">${p.t}</div><div class="pc">${p.cat}</div><div class="pp">৳${p.price}</div></button>`).join("");
+  }
+
   window.render.Orders = function (container) {
     const o = LS.get("orders") || [];
-    container.innerHTML = `${modHeader("Orders", o.length + " total")}<div style="padding:16px;">${ordersListHtml(o)}</div>`;
+    container.innerHTML = `${modHeader("Orders", o.length + " total")}<div style="padding:16px;">${safeOrdersList(o)}</div>`;
   };
 
   window.render.Products = function (container) {
     const c = LS.get("cat") || [];
-    container.innerHTML = `${modHeader("Products", c.length + " items")}<div class="pgrid" id="catGrid">${storeGridHtml(c)}</div>`;
-    if (typeof bindBuy === "function") bindBuy(c);
+    container.innerHTML = `${modHeader("Products", c.length + " items")}<div class="pgrid" id="catGrid">${safeStoreGrid(c)}</div>`;
+    if (typeof window.bindBuy === "function") window.bindBuy(c);
   };
 
-  /* ----- SHOPIFY ADVANCED PRODUCT CREATE FIELDS INTERLOCK ----- */
+  /* ----- SHOPIFY ADVANCED PRODUCT CREATE FIELDS ----- */
   window.render.CreateProduct = function (container) {
     container.innerHTML = `
       <div class="hud-tag">New Product Record</div>
