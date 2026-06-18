@@ -289,4 +289,5 @@ window.openFBLive = function () { if(window.render.FBLive) { openSheet('<div id=
 window.renderAIChat = function () { if(window.render.AIChat) { openSheet('<div id="modMount"></div>'); window.render.AIChat(document.getElementById("modMount")); } };
 
 render();
+window.callSpine = spine;
 })();
