@@ -291,3 +291,16 @@ window.renderAIChat = function () { if(window.render.AIChat) { openSheet('<div i
 render();
 window.callSpine = spine;
 })();
+/* ===== FIND THIS SECTION AT THE BOTTOM OF js/app.js AND ENSURE EXPORT REFRESH ===== */
+window.ordersListHtml = ordersListHtml;
+window.storeGridHtml = storeGridHtml;
+window.bindBuy = bindBuy;
+
+window.openGate = openGate; window.closeGate = closeGate; window.tryGate = tryGate; window.startCamera = startCamera; window.exitExpert = exitExpert; window.openAllOrders = openAllOrders; window.closeSheet = closeSheet; window.render = render; window.openDrawer = openDrawer; window.closeDrawer = closeDrawer; window.navTo = navTo;
+window.openCreateProduct = function () { if(window.render.CreateProduct) { openSheet('<div id="modMount"></div>'); window.render.CreateProduct(document.getElementById("modMount")); } };
+window.openFBLive = function () { if(window.render.FBLive) { openSheet('<div id="modMount"></div>'); window.render.FBLive(document.getElementById("modMount")); } };
+window.renderAIChat = function () { if(window.render.AIChat) { openSheet('<div id="modMount"></div>'); window.render.AIChat(document.getElementById("modMount")); } };
+
+render();
+window.callSpine = spine;
+})();
