@@ -2,7 +2,6 @@
    js/api.js - NEXOS LIVE SPINE CORE TUNNEL
    =========================================================== */
 window.callSpine = async function(action, payload = null) {
-  // আপনার Apps Script এর Deployment URL
   const SPINE_URL = "https://script.google.com/macros/s/AKfycbxUq3rIvz60_PzDcTYf2gv3JFcW42Tmwi243BY7P5G4BaaN-VnGV2RioYMSUxlu4vp73g/exec"; 
   
   try {
