@@ -23,7 +23,7 @@
     if (typeof bindBuy === "function") bindBuy(c);
   };
 
-  /* ----- SHOPIFY CORE CREATION PIPELINE INTERLOCK ----- */
+  /* ----- SHOPIFY ADVANCED PRODUCT CREATE FIELDS INTERLOCK ----- */
   window.render.CreateProduct = function (container) {
     container.innerHTML = `
       <div class="hud-tag">New Product Record</div>
@@ -110,6 +110,5 @@
   window.render.OnlineStore = (c) => c.innerHTML = modStub("Online Store", I.store, "Storefront configuration matrix.");
   window.render.AIChat = (c) => c.innerHTML = `<div class="ai-chat-wrap">${modHeader("Agentic AI")}<div class="ai-feed"><div class="ai-msg bot">NexOS AI Co-Pilot Ready.</div></div></div>`;
 
-  // Application sub-module routing bridging layers
   window.openAppModule = function(mod) { if(window.render[mod]) { openSheet('<div id="modMount"></div>'); window.render[mod](document.getElementById("modMount")); } };
 })();
