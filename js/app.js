@@ -35,7 +35,6 @@ window.addEventListener("offline", () => setOffline(true));
 const WRITE_ACTIONS = ["placeOrder", "uploadImage", "createProduct", "createCustomer", "createOrder"];
 
 async function spine(action, payload = {}) {
-  // গিটহাব পেজেস এনভায়রনমেন্ট থেকে সরাসরি ইউনিভার্সাল উইন্ডো ব্রিজে রাউট করা হচ্ছে
   if (typeof window.callSpine === "function") {
     try {
       return await window.callSpine(action, payload);
@@ -74,7 +73,6 @@ function demoSpine(a, p) {
     const rec = { id: "t" + Date.now().toString().slice(-6), t: p.Name || "Untitled", cat: p.Vendor || "GEN", price: Number(p.Price) || 0, ini: (p.Name || "NX").slice(0,3).toUpperCase(), img: p.Image || "" };
     dCat.unshift(rec); return Promise.resolve({status:"success", ok:true, id:rec.id});
   }
-  if (a === "createCustomer") return Promise.resolve({status:"success", ok:true});
   return Promise.resolve({items:[], status:"success"});
 }
 
@@ -238,6 +236,16 @@ function renderTabbar() {
   else { bar.innerHTML = `<button class="tb" onclick="expScreen='dashboard';render()">${I.home}</button><button class="tb" onclick="expScreen='catalog';render()">${I.orders}</button><button class="tb cam-fab" onclick="startCamera()">${I.cam}</button><button class="tb" onclick="openDrawer()"><svg viewBox="0 0 24 24" style="width:22px;height:22px;"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2"/></svg></button><button class="tb exit-btn" onclick="exitExpert()">${I.exit}</button>`; }
 }
 
+const NAV = [
+  {label:"Home", icon:I.home}, {label:"Orders", icon:I.orders, chev:true}, {label:"Products", icon:I.tag, chev:true}, {label:"Customers", icon:I.inbox, chev:true},
+  {sep:"Ecosystem HUB & Portals >"},
+  {label:"NexOS HUB", icon:I.link, url:"https://handfilm.github.io/nexus/os/hub/"}, {label:"Portal Launcher", icon:I.link, url:"https://handfilm.github.io/portal/"},
+  {sep:"Sales Channels (Modules) >"},
+  {label:"BackEnd Store Modules", icon:I.store, chev:true}, {label:"Standard Theme Customization", icon:I.gear, chev:true}, {label:"FrontEnd (Handsandhead)", icon:I.globe, url:"https://handfilm.myshopify.com/pages/handsandhead"},
+  {sep:"E-Commerce Next Level Apps >"},
+  {label:"Accounting Sync", icon:I.wallet, app:"Accounting"}, {label:"Auto Social Post", icon:I.megaphone, app:"SocialPost"}, {label:"Meta Live Feed", icon:I.spark, app:"MetaFeed"}, {label:"Daraz Sync Pipeline", icon:I.chart, app:"DarazSync"}
+];
+
 function openDrawer() { document.getElementById("drawer").innerHTML = `<nav class="drawer-nav">${renderDrawerNav()}</nav>`; document.getElementById("drawer").classList.add("on"); document.getElementById("drawerScrim").classList.add("on"); }
 function closeDrawer() { document.getElementById("drawer").classList.remove("on"); document.getElementById("drawerScrim").classList.remove("on"); }
 function renderDrawerNav() { return NAV.map(n => { if (n.sep) return `<span class="nav-section">${n.sep}</span>`; return `<button class="nav-row" onclick="navTo('${n.label}')"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div></button>`; }).join(""); }
@@ -255,6 +263,25 @@ function closeGate() { document.getElementById("gate").classList.remove("on"); d
 function tryGate() { if (document.getElementById("gatePin").value.trim() === OPERATOR_PIN) { mode = "expert"; expScreen = "dashboard"; closeGate(); applyTheme("expert"); render(); toast("Expert Mode Unlocked ✓"); } else { toast("Access Denied"); } }
 function exitExpert() { mode = "lite"; applyTheme("lite"); render(); toast("Returned to Lite Mode"); }
 let tT = null; function toast(m) { const t = document.getElementById("toast"); t.innerText = m; t.classList.add("on"); clearTimeout(tT); tT = setTimeout(() => t.classList.remove("on"), 2500); }
+
+/* Swipe & Haptic Engine Hooks */
+(function() {
+  const sheet = document.getElementById("sheet");
+  let startY = 0, currentDY = 0, isDragging = false;
+  sheet.addEventListener("touchstart", function(e) {
+    if (!sheet.classList.contains("on")) return;
+    startY = e.touches[0].clientY; isDragging = true;
+  }, { passive: true });
+  sheet.addEventListener("touchmove", function(e) {
+    if (!isDragging) return;
+    currentDY = e.touches[0].clientY - startY;
+    if (currentDY > 0) sheet.style.transform = `translateY(${currentDY}px)`;
+  }, { passive: true });
+  sheet.addEventListener("touchend", function() {
+    isDragging = false; if (currentDY > 120) closeSheet();
+    sheet.style.transform = "";
+  }, { passive: true });
+})();
 
 window.openGate = openGate; window.closeGate = closeGate; window.tryGate = tryGate; window.startCamera = startCamera; window.exitExpert = exitExpert; window.openAllOrders = openAllOrders; window.closeSheet = closeSheet; window.render = render; window.openDrawer = openDrawer; window.closeDrawer = closeDrawer; window.navTo = navTo;
 window.openCreateProduct = function () { if(window.render.CreateProduct) { openSheet('<div id="modMount"></div>'); window.render.CreateProduct(document.getElementById("modMount")); } };
