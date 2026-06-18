@@ -12,9 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
-<!-- Link to extracted CSS -->
 <link rel="stylesheet" href="css/theme.css">
-<!-- Optional Shake Animation for PIN Gate -->
 <style>
   @keyframes shake {
     0%,100% { transform: translate(-50%,-50%) scale(1) translateX(0); }
@@ -58,7 +56,6 @@
 <div class="sheet" id="sheet"></div>
 <div class="scrim" id="drawerScrim" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer"></div>
-<!-- Expert Mode PIN Gate -->
 <div class="scrim" id="gateScrim" style="z-index:69;" onclick="closeGate()"></div>
 <div class="gate" id="gate">
   <div class="gate-icon">
@@ -75,9 +72,17 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Link to extracted JS -->
+<script src="js/api.js"></script>
 <script src="js/app.js"></script>
 <script src="js/modules.js"></script>
+
+<script>
+  if (typeof window.openSearch !== 'function') {
+    window.openSearch = function() {
+      if (typeof toast === 'function') toast("Search Indexing Pipeline Queued");
+    };
+  }
+</script>
 
 </body>
 </html>
